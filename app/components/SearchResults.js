@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import ServiceProvider from '../lib/ServiceProvider';
-// import { useAudioPlayer } from '../context/AudioPlayerContext';
 import { useAudioPlayer } from '../context/AudioPlyerContext';
 import Link from 'next/link';
-import { PlayIcon, MusicalNoteIcon } from '@heroicons/react/24/solid';
+import { PlayIcon } from '@heroicons/react/24/solid';
 
 export default function SearchResults({ query }) {
   const [results, setResults] = useState([]);
@@ -41,47 +40,39 @@ export default function SearchResults({ query }) {
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
-
-
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Search Results for "{query}"</h2>
-      <div className="bg-white">
-        {results.map((item, index) => (
-          <div key={item.id} className={`flex items-center py-4 ${index !== 0 ? 'border-t border-gray-200' : ''}`}>
-            <div className="w-16 h-16 flex-shrink-0 mr-4">
-              {item.image ? (
-                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                  <MusicalNoteIcon className="h-8 w-8 text-gray-400" />
-                </div>
-              )}
-            </div>
-            <div className="flex-grow">
-              <h3 className="font-semibold text-lg truncate">{item.title}</h3>
-              <p className="text-sm text-gray-600 truncate">{item.subtitle}</p>
-            </div>
-            <div>
-              {item.type === 'song' && (
-                <button
-                  onClick={() => handlePlay(item)}
-                  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors duration-300 flex items-center"
-                >
-                  <PlayIcon className="h-5 w-5 mr-2" />
-                  Play
-                </button>
-              )}
-              {item.type === 'album' && (
-                <Link href={`/album/${item.id}`} className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300">
-                  View Album
-                </Link>
-              )}
-              {item.type === 'playlist' && (
-                <Link href={`/playlist/${item.id}`} className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 transition-colors duration-300">
-                  View Playlist
-                </Link>
-              )}
+    <div className="container mx-auto px-4">
+      {/* <h2 className="text-2xl font-bold mb-4 text-gray-800">Results for "{query}"</h2> */}
+      <div className="space-y-2">
+        {results.map((item) => (
+          <div key={item.id} className="bg-white rounded-md shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md flex items-center h-16">
+            <img src={item.image} alt={item.title} className="w-16 h-16 object-cover" />
+            <div className="flex-grow px-4 flex items-center justify-between min-w-0">
+              <div className="truncate">
+                <h3 className="font-semibold text-sm truncate">{item.title}</h3>
+                <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
+              </div>
+              <div>
+                {item.type === 'song' && (
+                  <button
+                    onClick={() => handlePlay(item)}
+                    className="p-2 rounded-full text-green-500 text-white bg-green-500 transition-colors duration-300"
+                    aria-label="Play"
+                  >
+                    <PlayIcon className="h-5 w-5" />
+                  </button>
+                )}
+                {item.type === 'album' && (
+                  <Link href={`/album/${item.id}`} className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-blue-600 transition-colors duration-300 inline-block">
+                    View Album
+                  </Link>
+                )}
+                {item.type === 'playlist' && (
+                  <Link href={`/playlist/${item.id}`} className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-purple-600 transition-colors duration-300 inline-block">
+                    View Playlist
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         ))}
