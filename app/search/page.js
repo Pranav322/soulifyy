@@ -1,4 +1,5 @@
-import SearchResults from '../../components/SearchResults';
+
+import SearchResults from '../components/SearchResults';
 
 export default function SearchPage({ searchParams }) {
   const query = searchParams.q;
