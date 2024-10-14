@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import ServiceProvider from '../lib/ServiceProvider';
-import { useAudioPlayer } from '../context/AudioPlayerContext';
+// import { useAudioPlayer } from '../context/AudioPlayerContext';
+import { useAudioPlayer } from '../context/AudioPlyerContext';
 import Link from 'next/link';
 import { PlayIcon, MusicalNoteIcon } from '@heroicons/react/24/solid';
 
