@@ -1,19 +1,15 @@
-'use client';
+import SearchResults from '../../components/SearchResults';
 
-import { useSearchParams } from 'next/navigation';
-import SearchResults from '../components/SearchResults';
-
-
-export default function SearchPage() {
-  const searchParams = useSearchParams();
-  const query = searchParams.get('q');
+export default function SearchPage({ searchParams }) {
+  const query = searchParams.q;
 
   return (
-    // <div className="min-h-screen bg-gray-100 pt-20 pb-24">
+    <div className="container mx-auto p-4">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Search Results for "{query}"</h2>
       <SearchResults query={query} />
-    // </div>
+    </div>
   );
 }
-export function generateStaticParams() {
-  return [];
-}
+
+// This tells Next.js to generate this page dynamically
+export const dynamic = 'force-dynamic';
