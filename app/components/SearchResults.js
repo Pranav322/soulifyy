@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ServiceProvider from '../lib/ServiceProvider';
-import { useAudioPlayer } from '../context/AudioPlyerContext';
+import { useAudioPlayer } from '../context/AudioPlayerContext';
 import Link from 'next/link';
 import { PlayIcon, MusicalNoteIcon } from '@heroicons/react/24/solid';
 
@@ -39,6 +39,8 @@ export default function SearchResults({ query }) {
   };
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+
+
 
   return (
     <div className="container mx-auto p-4">

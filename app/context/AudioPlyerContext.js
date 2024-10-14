@@ -1,69 +1,61 @@
 'use client';
 
-import React, { createContext, useState, useContext, useRef, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const AudioPlayerContext = createContext();
 
 export function AudioPlayerProvider({ children }) {
-  const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const audioRef = useRef(new Audio());
+  const audioRef = useRef(null);
 
   useEffect(() => {
+    // Initialize Audio object on the client side
+    audioRef.current = new Audio();
     const audio = audioRef.current;
 
-    const handleLoadedMetadata = () => {
+    const setAudioData = () => {
       setDuration(audio.duration);
-    };
-
-    const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
     };
 
-    const handleEnded = () => {
-      setIsPlaying(false);
-    };
+    const setAudioTime = () => setCurrentTime(audio.currentTime);
 
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
+    // Add event listeners
+    audio.addEventListener('loadeddata', setAudioData);
+    audio.addEventListener('timeupdate', setAudioTime);
 
+    // Cleanup function
     return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('loadeddata', setAudioData);
+      audio.removeEventListener('timeupdate', setAudioTime);
     };
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount
 
-  const play = (track) => {
-    if (currentTrack && currentTrack.id === track.id) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      setCurrentTrack(track);
-      audioRef.current.src = track.streamurl.auth_url;
+  const play = (song) => {
+    if (audioRef.current) {
+      audioRef.current.src = song.url;
       audioRef.current.play();
       setIsPlaying(true);
     }
   };
 
-  const seekTo = (value) => {
-    const seekTo = (value / 100) * duration;
-    audioRef.current.currentTime = seekTo;
+  const pause = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const seek = (time) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
   };
 
   return (
-    <AudioPlayerContext.Provider value={{ currentTrack, isPlaying, play, duration, currentTime, seekTo }}>
+    <AudioPlayerContext.Provider value={{ isPlaying, duration, currentTime, play, pause, seek }}>
       {children}
     </AudioPlayerContext.Provider>
   );
