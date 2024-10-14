@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
+  console.log('Incoming request URL:', request.url);
+  console.log('Incoming request headers:', JSON.stringify(request.headers, null, 2));
+
   const { searchParams } = new URL(request.url);
   const url = searchParams.get('url');
 
+  console.log('Requested URL:', url);
+
   if (!url) {
+    console.log('Error: URL is required');
     return NextResponse.json({ error: 'URL is required' }, { status: 400 });
   }
 
   try {
+    console.log('Fetching data from:', url);
     const response = await fetch(url, {
       headers: {
         Accept: "application/json, text/plain, */*",
@@ -17,9 +24,21 @@ export async function GET(request) {
       },
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers), null, 2));
+
     const data = await response.json();
+    console.log('Response data preview:', JSON.stringify(data).substring(0, 200) + '...');
+
+    // Log the number of results if it's a search query
+    if (data.results) {
+      console.log('Number of results:', data.results.length);
+      console.log('First few result titles:', data.results.slice(0, 5).map(r => r.title));
+    }
+
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    console.error('Error in proxy:', error);
+    return NextResponse.json({ error: 'Failed to fetch data', details: error.message }, { status: 500 });
   }
 }
