@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, MusicalNoteIcon, UserCircleIcon } from '@heroicons/react/24/solid';
 import { useState, useEffect, useCallback } from 'react';
