@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { MagnifyingGlassIcon, MusicalNoteIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ServiceProvider from './lib/ServiceProvider';
 import SearchResultsDropdown from './components/SearchDropDown';
@@ -12,11 +12,14 @@ export default function Header() {
   const [liveResults, setLiveResults] = useState([]);
   const router = useRouter();
   const serviceProvider = new ServiceProvider();
+  const searchContainerRef = useRef(null);
 
   const debouncedSearch = useCallback(
     debounce((query) => {
+      console.log('Debounced search called with query:', query);
       if (query.length > 1) {
         serviceProvider.getSearch(query, 1, 1).then((data) => {
+          console.log('Search results:', data.results);
           setLiveResults(data.results.slice(0, 5));
         });
       } else {
@@ -27,21 +30,57 @@ export default function Header() {
   );
 
   useEffect(() => {
+    console.log('Search query changed:', searchQuery);
     debouncedSearch(searchQuery);
   }, [searchQuery, debouncedSearch]);
+
+  const handleClickOutside = useCallback((event) => {
+    if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+      setIsExpanded(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  // Remove the useEffect hook for handleMouseLeave
+  
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsExpanded(false);
     }
   };
 
-  const toggleSearch = () => {
+  const toggleSearch = (e) => {
+    e.stopPropagation();
     setIsExpanded(!isExpanded);
     if (!isExpanded) {
       setTimeout(() => document.getElementById('search-input').focus(), 100);
     }
+  };
+
+  const handleSelect = (item) => {
+    if (item.type === 'song') {
+      router.push(`/song/${item.id}`);
+    } else if (item.type === 'album') {
+      router.push(`/album/${item.id}`);
+    } else if (item.type === 'playlist') {
+      router.push(`/playlist/${item.id}`);
+    } else {
+      router.push(`/search?q=${encodeURIComponent(item.title)}`);
+    }
+    setIsExpanded(false);
+  };
+
+  const handlePlay = () => {
+    // Keep the dropdown open when a song is played
+    setIsExpanded(true);
   };
 
   return (
@@ -52,19 +91,22 @@ export default function Header() {
           <span className="text-red-400">Soulify</span>
         </Link>
 
-        <div className={`relative transition-all duration-300 ease-in-out ${isExpanded ? 'w-1/2' : 'w-64'}`}>
+        <div ref={searchContainerRef} className={`relative transition-all duration-300 ease-in-out ${isExpanded ? 'w-1/2' : 'w-64'}`}>
           <form onSubmit={handleSearch} className="w-full">
             <div className="relative">
-              <input
-                id="search-input"
-                type="text"
-                placeholder="Search"
-                className={`w-full py-2 px-4 pr-10 rounded-full bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-300 ease-in-out`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsExpanded(true)}
-                onBlur={() => setIsExpanded(false)}
-              />
+            <input
+  id="search-input"
+  type="text"
+  placeholder="Search"
+  className={`w-full py-2 px-4 pr-10 rounded-full bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-300 ease-in-out`}
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  onFocus={() => {
+    setIsExpanded(true);
+    setLiveResults([]);
+  }}
+  onClick={(e) => e.stopPropagation()}
+/>
               <button
                 type="button"
                 onClick={toggleSearch}
@@ -75,7 +117,11 @@ export default function Header() {
             </div>
           </form>
           {isExpanded && liveResults.length > 0 && (
-            <SearchResultsDropdown results={liveResults} onSelect={(item) => router.push(`/search?q=${encodeURIComponent(item.title)}`)} />
+            <SearchResultsDropdown 
+              results={liveResults} 
+              onSelect={handleSelect}
+              onPlay={handlePlay}
+            />
           )}
         </div>
 

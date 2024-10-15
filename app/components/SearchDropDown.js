@@ -1,8 +1,26 @@
-import { PlayIcon } from '@heroicons/react/24/solid';
+import { PlayIcon, PauseIcon } from '@heroicons/react/24/solid';
+import { useAudioPlayer } from '../context/AudioPlyerContext';
+import ServiceProvider from '../lib/ServiceProvider';
 
-export default function SearchResultsDropdown({ results, onSelect }) {
+export default function SearchResultsDropdown({ results, onSelect, onPlay }) {
+  const { play, currentTrack, isPlaying } = useAudioPlayer();
+  const serviceProvider = new ServiceProvider();
+
+  const handlePlay = async (e, item) => {
+    e.stopPropagation();
+    if (item.type === 'song') {
+      try {
+        const songDetails = await serviceProvider.playById(item.id);
+        play({ ...item, ...songDetails });
+        if (onPlay) onPlay(item);
+      } catch (error) {
+        console.error('Error playing song:', error);
+      }
+    }
+  };
+
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-50">
       {results.map((item) => (
         <div
           key={item.id}
@@ -15,7 +33,16 @@ export default function SearchResultsDropdown({ results, onSelect }) {
             <p className="text-xs text-gray-600">{item.subtitle}</p>
           </div>
           {item.type === 'song' && (
-            <PlayIcon className="h-5 w-5 text-gray-500" />
+            <button
+              onClick={(e) => handlePlay(e, item)}
+              className="p-2 rounded-full text-green-500 hover:bg-green-100 transition-colors duration-300"
+            >
+              {currentTrack && currentTrack.id === item.id && isPlaying ? (
+                <PauseIcon className="h-5 w-5" />
+              ) : (
+                <PlayIcon className="h-5 w-5" />
+              )}
+            </button>
           )}
         </div>
       ))}
