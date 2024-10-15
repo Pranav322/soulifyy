@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
       >
         <AudioPlayerProvider>
         <Header />
-        <main className="pt-16 pb-24">
+        <main className="pt-16">
           {children}
           </main>
           <PersistentPlayer />
