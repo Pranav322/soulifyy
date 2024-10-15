@@ -12,10 +12,10 @@
     "@heroicons/react": "^2.1.5",
     "axios": "^1.7.7",
     "next": "14.2.15",
-    "node-fetch": "^3.3.2",
+   
     "react": "^18",
-    "react-dom": "^18",
-    "swiper": "^11.1.14"
+    "react-dom": "^18"
+  
   },
   "devDependencies": {
     "postcss": "^8",
