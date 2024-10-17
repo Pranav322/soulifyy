@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { MagnifyingGlassIcon, MusicalNoteIcon, UserCircleIcon } from '@heroicons/react/24/solid';
+import { MagnifyingGlassIcon, MusicalNoteIcon, UserCircleIcon, HeartIcon } from '@heroicons/react/24/solid';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ServiceProvider from './lib/ServiceProvider';
@@ -10,33 +10,37 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [liveResults, setLiveResults] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
-  const serviceProvider = new ServiceProvider();
   const searchContainerRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const serviceProvider = new ServiceProvider();
 
-  const debouncedSearch = useCallback(
-    debounce((query) => {
-      console.log('Debounced search called with query:', query);
-      if (query.length > 1) {
-        serviceProvider.getSearch(query, 1, 1).then((data) => {
-          console.log('Search results:', data.results);
-          setLiveResults(data.results.slice(0, 5));
-        });
+  useEffect(() => {
+    const fetchLiveResults = async () => {
+      if (searchQuery.trim()) {
+        try {
+          const results = await serviceProvider.getSearch(searchQuery, 1, 1);
+          setLiveResults(results.results);
+        } catch (error) {
+          console.error('Error fetching live results:', error);
+        }
       } else {
         setLiveResults([]);
       }
-    }, 300),
-    []
-  );
+    };
 
-  useEffect(() => {
-    console.log('Search query changed:', searchQuery);
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    const debounceTimer = setTimeout(fetchLiveResults, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const handleClickOutside = useCallback((event) => {
     if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
       setIsExpanded(false);
+    }
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
     }
   }, []);
 
@@ -45,9 +49,7 @@ export default function Header() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
-  // Remove the useEffect hook for handleMouseLeave
-  
+  }, [handleClickOutside]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -79,7 +81,6 @@ export default function Header() {
   };
 
   const handlePlay = () => {
-    // Keep the dropdown open when a song is played
     setIsExpanded(true);
   };
 
@@ -94,19 +95,19 @@ export default function Header() {
         <div ref={searchContainerRef} className={`relative transition-all duration-300 ease-in-out ${isExpanded ? 'w-1/2' : 'w-64'}`}>
           <form onSubmit={handleSearch} className="w-full">
             <div className="relative">
-            <input
-  id="search-input"
-  type="text"
-  placeholder="Search"
-  className={`w-full py-2 px-4 pr-10 rounded-full bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-300 ease-in-out`}
-  value={searchQuery}
-  onChange={(e) => setSearchQuery(e.target.value)}
-  onFocus={() => {
-    setIsExpanded(true);
-    setLiveResults([]);
-  }}
-  onClick={(e) => e.stopPropagation()}
-/>
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Search"
+                className="w-full py-2 px-4 pr-10 rounded-full bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-300 ease-in-out"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  setIsExpanded(true);
+                  setLiveResults([]);
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
               <button
                 type="button"
                 onClick={toggleSearch}
@@ -125,24 +126,27 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex items-center">
-          <button className="text-gray-600 hover:text-gray-800 focus:outline-none">
+        <div ref={dropdownRef} className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-100"
+          >
             <UserCircleIcon className="h-8 w-8" />
           </button>
+          {isDropdownOpen && (
+            <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <Link
+                href="/liked-songs"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <HeartIcon className="h-5 w-5 inline-block mr-2" />
+                Liked Songs
+              </Link>
+              {/* Add more profile options here */}
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
 }

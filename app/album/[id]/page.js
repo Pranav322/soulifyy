@@ -6,13 +6,14 @@ import ServiceProvider from '../../lib/ServiceProvider';
 import { useAudioPlayer } from '@/app/context/AudioPlyerContext';
 import { PlayIcon, PauseIcon, HeartIcon, ShareIcon } from '@heroicons/react/24/solid';
 import { decodeHtmlEntities } from '@/app/helper/decodeHtmlEntities';
+import { useLikedSongs } from '@/app/context/LikedSongContext';
 export default function AlbumPage({ params }) {
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentTrack, isPlaying, play } = useAudioPlayer();
   const serviceProvider = new ServiceProvider();
-
+  const { toggleLikedSong, isLiked } = useLikedSongs();
   useEffect(() => {
     const fetchAlbum = async () => {
       try {
@@ -42,50 +43,56 @@ export default function AlbumPage({ params }) {
   if (!album) return <div className="flex justify-center items-center h-screen">Album not found</div>;
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-black text-white min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row items-center md:items-start mb-8">
-          <img src={album.image} alt={album.title} className="w-64 h-64 object-cover rounded-lg shadow-lg mb-4 md:mb-0 md:mr-8" />
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{album.title}</h1>
-            <p className="text-xl mb-2">{album.subtitle}</p>
-            <p className="text-gray-400 mb-4">{album.year} • {album.list.length} songs</p>
-            <div className="flex space-x-4">
-              <button className="bg-green-500 text-white px-6 py-2 rounded-full flex items-center">
-                <PlayIcon className="h-5 w-5 mr-2" /> Play All
-              </button>
-              <button className="text-white p-2 rounded-full border border-white">
-                <HeartIcon className="h-5 w-5" />
-              </button>
-              <button className="text-white p-2 rounded-full border border-white">
-                <ShareIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Songs</h2>
-          <ul>
-            {album.list.map((song, index) => (
-              <li key={song.id} className="flex items-center py-2 hover:bg-gray-800 rounded">
-                <button onClick={() => playSong(song)} className="mr-4">
-                  {currentTrack && currentTrack.id === song.id && isPlaying ? (
-                    <PauseIcon className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <PlayIcon className="h-5 w-5" />
-                  )}
-                </button>
-                <span className="w-8 text-right mr-4 text-gray-400">{index + 1}</span>
-                <img src={song.image} alt={song.title} className="w-10 h-10 object-cover rounded mr-4" />
-                <div className="flex-grow">
-                  <p className="font-medium">{decodeHtmlEntities(song.title)}</p>
-                  <p className="text-sm text-gray-400">{song.subtitle}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className=" min-h-screen">
+  <div className="container mx-auto px-4 py-8">
+    <div className="flex flex-col md:flex-row items-center md:items-start mb-8 space-y-4 md:space-y-0 md:space-x-8">
+      <img src={album.image} alt={album.title} className="w-64 h-64 object-cover rounded-lg shadow-lg" />
+      <div className="text-center md:text-left">
+      <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">{album.title}</h1>
+<p className="text-xl mb-2 text-gray-800">{album.subtitle}</p>
+<p className="text-gray-600 mb-4">{album.year} • {album.list.length} songs</p>
+<div className="flex flex-wrap justify-center md:justify-start space-x-4">
+  <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center mb-2">
+    <PlayIcon className="h-5 w-5 mr-2" /> Play All
+  </button>
+  <button className="text-gray-900 p-2 rounded-full border border-gray-900 hover:bg-gray-900 hover:text-white transition-colors mb-2">
+    <HeartIcon className="h-5 w-5" />
+  </button>
+  <button className="text-gray-900 p-2 rounded-full border border-gray-900 hover:bg-gray-900 hover:text-white transition-colors mb-2">
+    <ShareIcon className="h-5 w-5" />
+  </button>
+</div>
+</div>
+</div>
+<div>
+<h2 className="text-2xl font-semibold mb-4 text-gray-900">Songs</h2>
+<ul className="space-y-2">
+  {album.list.map((song, index) => (
+    <li key={song.id} className="flex items-center py-2 hover:bg-gray-200 rounded px-2">
+      <button onClick={() => playSong(song)} className="mr-4">
+        {currentTrack && currentTrack.id === song.id && isPlaying ? (
+          <PauseIcon className="h-5 w-5 text-green-500" />
+        ) : (
+          <PlayIcon className="h-5 w-5 text-gray-900" />
+        )}
+      </button>
+      <span className="w-8 text-right mr-4 text-gray-600">{index + 1}</span>
+      <img src={song.image} alt={song.title} className="w-10 h-10 object-cover rounded mr-4" />
+      <div className="flex-grow min-w-0">
+        <p className="font-medium truncate text-gray-900">{decodeHtmlEntities(song.title)}</p>
+        <p className="text-sm text-gray-600 truncate">{song.subtitle}</p>
       </div>
+      <button
+        onClick={() => toggleLikedSong(song)}
+        className={`p-2 rounded-full ${isLiked(song.id) ? 'text-red-500' : 'text-gray-400'} hover:bg-gray-300 transition-colors duration-300`}
+      >
+        <HeartIcon className="h-5 w-5" />
+      </button>
+    </li>
+  ))}
+</ul>
     </div>
+  </div>
+</div>
   );
 }

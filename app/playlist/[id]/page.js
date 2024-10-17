@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import ServiceProvider from '../../lib/ServiceProvider';
 import { useAudioPlayer } from '@/app/context/AudioPlyerContext';
 import { PlayIcon, PauseIcon, HeartIcon, ShareIcon } from '@heroicons/react/24/solid';
-
+import { useLikedSongs } from '@/app/context/LikedSongContext';
 export default function PlaylistPage({ params }) {
   const [playlist, setPlaylist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentTrack, isPlaying, play } = useAudioPlayer();
   const serviceProvider = new ServiceProvider();
+  const { toggleLikedSong, isLiked } = useLikedSongs();
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -41,49 +42,55 @@ export default function PlaylistPage({ params }) {
   if (!playlist) return <div className="flex justify-center items-center h-screen">Playlist not found</div>;
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-black text-white min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row items-center md:items-start mb-8">
-          <img src={playlist.image} alt={playlist.listname} className="w-64 h-64 object-cover rounded-lg shadow-lg mb-4 md:mb-0 md:mr-8" />
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{playlist.listname}</h1>
-            <p className="text-gray-400 mb-4">Followers: {playlist.follower_count}</p>
-            <div className="flex space-x-4">
-              <button className="bg-green-500 text-white px-6 py-2 rounded-full flex items-center">
-                <PlayIcon className="h-5 w-5 mr-2" /> Play All
-              </button>
-              <button className="text-white p-2 rounded-full border border-white">
-                <HeartIcon className="h-5 w-5" />
-              </button>
-              <button className="text-white p-2 rounded-full border border-white">
-                <ShareIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Songs</h2>
-          <ul>
-            {playlist.songs.map((song, index) => (
-              <li key={song.id} className="flex items-center py-2 hover:bg-gray-800 rounded">
-                <button onClick={() => playSong(song)} className="mr-4">
-                  {currentTrack && currentTrack.id === song.id && isPlaying ? (
-                    <PauseIcon className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <PlayIcon className="h-5 w-5" />
-                  )}
-                </button>
-                <span className="w-8 text-right mr-4 text-gray-400">{index + 1}</span>
-                <img src={song.image} alt={song.song} className="w-10 h-10 object-cover rounded mr-4" />
-                <div className="flex-grow">
-                  <p className="font-medium">{song.song}</p>
-                  <p className="text-sm text-gray-400">{song.primary_artists}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className="min-h-screen">
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row items-center md:items-start mb-8 space-y-4 md:space-y-0 md:space-x-8">
+        <img src={playlist.image} alt={playlist.listname} className="w-64 h-64 object-cover rounded-lg shadow-lg" />
+        <div className="text-center md:text-left">
+        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">{playlist.listname}</h1>
+<p className="text-gray-600 mb-4">Followers: {playlist.follower_count}</p>
+<div className="flex flex-wrap justify-center md:justify-start space-x-4">
+  <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center mb-2">
+    <PlayIcon className="h-5 w-5 mr-2" /> Play All
+  </button>
+  <button className="text-gray-900 p-2 rounded-full border border-gray-900 hover:bg-gray-900 hover:text-white transition-colors mb-2">
+    <HeartIcon className="h-5 w-5" />
+  </button>
+  <button className="text-gray-900 p-2 rounded-full border border-gray-900 hover:bg-gray-900 hover:text-white transition-colors mb-2">
+    <ShareIcon className="h-5 w-5" />
+  </button>
+</div>
+</div>
+</div>
+<div>
+<h2 className="text-2xl font-semibold mb-4 text-gray-900">Songs</h2>
+<ul className="space-y-2">
+  {playlist.songs.map((song, index) => (
+    <li key={song.id} className="flex items-center py-2 hover:bg-gray-200 rounded px-2">
+      <button onClick={() => playSong(song)} className="mr-4">
+        {currentTrack && currentTrack.id === song.id && isPlaying ? (
+          <PauseIcon className="h-5 w-5 text-green-500" />
+        ) : (
+          <PlayIcon className="h-5 w-5 text-gray-900" />
+        )}
+      </button>
+      <span className="w-8 text-right mr-4 text-gray-600">{index + 1}</span>
+      <img src={song.image} alt={song.song} className="w-10 h-10 object-cover rounded mr-4" />
+      <div className="flex-grow min-w-0">
+        <p className="font-medium truncate text-gray-900">{song.song}</p>
+        <p className="text-sm text-gray-600 truncate">{song.primary_artists}</p>
+      </div>
+      <button
+        onClick={() => toggleLikedSong(song)}
+        className={`p-2 rounded-full ${isLiked(song.id) ? 'text-red-500' : 'text-gray-400'} hover:bg-gray-300 transition-colors duration-300`}
+      >
+        <HeartIcon className="h-5 w-5" />
+      </button>
+    </li>
+  ))}
+</ul>
       </div>
     </div>
+  </div>
   );
 }
