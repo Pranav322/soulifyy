@@ -52,36 +52,36 @@ export default function DataFetcher() {
 
 function Section({ title, items }) {
   const scrollRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
 
   const scroll = (scrollOffset) => {
     scrollRef.current.scrollLeft += scrollOffset;
   };
 
+  const handleScroll = () => {
+    setShowLeftArrow(scrollRef.current.scrollLeft > 0);
+  };
+
   return (
-    <div className="mb-12">
+    <div className="relative">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800">{title}</h2>
-      <div className="relative">
+      {showLeftArrow && (
         <button
           onClick={() => scroll(-200)}
           className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md z-10"
         >
           <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
         </button>
-        <div
-          ref={scrollRef}
-          className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          {items.map((item) => (
-            <TrendingItem key={item.id} item={item} />
-          ))}
-        </div>
-        <button
-          onClick={() => scroll(200)}
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md z-10"
-        >
-          <ChevronRightIcon className="h-6 w-6 text-gray-600" />
-        </button>
+      )}
+      <div
+        ref={scrollRef}
+        className="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar"
+        style={{ scrollBehavior: 'smooth' }}
+        onScroll={handleScroll}
+      >
+        {items.map((item) => (
+          <TrendingItem key={item.id} item={item} />
+        ))}
       </div>
     </div>
   );
@@ -101,8 +101,8 @@ function TrendingItem({ item }) {
 
   return (
     <Link href={href}>
-      <div className="w-48 flex-shrink-0 cursor-pointer">
-        <img src={item.image} alt={item.title} className="w-full h-48 object-cover rounded-lg shadow-md" />
+      <div className="w-36 sm:w-48 flex-shrink-0 cursor-pointer">
+        <img src={item.image} alt={item.title} className="w-full h-36 sm:h-48 object-cover rounded-lg shadow-md" />
         <h3 className="font-semibold text-sm mt-2 truncate">{item.title}</h3>
         <p className="text-xs text-gray-600 truncate">{item.subtitle || item.description || ''}</p>
       </div>
